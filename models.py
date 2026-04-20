@@ -6,3 +6,8 @@ class Product(BaseModel):
     price: float
     quantity : int 
 
+class ProductResponse(BaseModel):
+    id:int
+    name:str
+    description: str
+    price: float

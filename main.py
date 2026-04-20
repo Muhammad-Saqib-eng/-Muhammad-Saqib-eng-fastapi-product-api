@@ -1,5 +1,5 @@
-from fastapi import FastAPI, Depends
-from models import Product
+from fastapi import FastAPI, Depends , status
+from models import Product,ProductResponse
 from db import session, engine
 import database_models
 from sqlalchemy.orm import Session
@@ -46,7 +46,7 @@ def greet():
     return {"message": "hello there"}
 
 
-@app.get("/products")
+@app.get("/products",response_model=list[ProductResponse],status_code=status.HTTP_200_OK)
 def return_all_products(min_price: float = None, max_prize: float = None ,db:Session = Depends(get_db)):
     if min_price != None and max_prize != None:
         db_products=db.query(database_models.Product).filter(database_models.Product.price>=min_price, database_models.Product.price<=max_prize).all()
@@ -54,7 +54,7 @@ def return_all_products(min_price: float = None, max_prize: float = None ,db:Ses
         db_products= db.query(database_models.Product).all()
     return db_products
 
-@app.get("/products/search")
+@app.get("/products/search",response_model=list[ProductResponse],status_code=status.HTTP_200_OK)
 def search_by_name(name:str, db:Session = Depends(get_db)):
     db_product_name=db.query(database_models.Product).filter(database_models.Product.name.contains(name)).all()
     if db_product_name:
@@ -62,7 +62,7 @@ def search_by_name(name:str, db:Session = Depends(get_db)):
     else:
         return "Product not foound "
     
-@app.get("/products/{id}")
+@app.get("/products/{id}",response_model=ProductResponse,status_code=status.HTTP_200_OK)
 def return_product_by_id(id:int,db:Session = Depends(get_db)):
     db_product_id= db.query(database_models.Product).filter(database_models.Product.id==id).first()
     if db_product_id:
@@ -70,7 +70,7 @@ def return_product_by_id(id:int,db:Session = Depends(get_db)):
     return "Product Not Found"
 
 
-@app.post("/products")
+@app.post("/products",status_code=status.HTTP_201_CREATED)
 def add_product(product:Product,db:Session = Depends(get_db)):  #the format we get the data is the product itself (product:Product)
     if product.price<=0 or not  product.name:
         return "crediantials wrong price or name."
@@ -79,7 +79,7 @@ def add_product(product:Product,db:Session = Depends(get_db)):  #the format we g
         db.commit()
         return product
 
-@app.put("/products/{id}")
+@app.put("/products/{id}",status_code=status.HTTP_200_OK)
 def update_product(id:int , product:Product,db:Session = Depends(get_db)):
     db_product= db.query(database_models.Product).filter(database_models.Product.id==id).first()
     if db_product:
@@ -93,7 +93,7 @@ def update_product(id:int , product:Product,db:Session = Depends(get_db)):
         return "NO Product found"
 
 
-@app.delete("/products/{id}")
+@app.delete("/products/{id}",status_code=status.HTTP_204_NO_CONTENT)
 def delete_product(id:int,db:Session = Depends(get_db)):
     db_product= db.query(database_models.Product).filter(database_models.Product.id==id).first()
     if db_product:

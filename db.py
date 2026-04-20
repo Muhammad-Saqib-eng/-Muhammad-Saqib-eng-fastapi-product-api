@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker 
 
 db_url="mysql+pymysql://root:root123@localhost:3306/dbFastApi"
 engine= create_engine(db_url)
