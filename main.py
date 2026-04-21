@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends , status
+from fastapi import FastAPI, Depends , status ,HTTPException
 from models import Product,ProductResponse
 from db import session, engine
 import database_models
@@ -60,22 +60,24 @@ def search_by_name(name:str, db:Session = Depends(get_db)):
     if db_product_name:
         return db_product_name
     else:
-        return "Product not foound "
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "Product Not Found")
+        
     
 @app.get("/products/{id}",response_model=ProductResponse,status_code=status.HTTP_200_OK)
 def return_product_by_id(id:int,db:Session = Depends(get_db)):
     db_product_id= db.query(database_models.Product).filter(database_models.Product.id==id).first()
     if db_product_id:
         return db_product_id
-    return "Product Not Found"
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "Product Not Found")
 
 
 @app.post("/products",status_code=status.HTTP_201_CREATED)
 def add_product(product:Product,db:Session = Depends(get_db)):  #the format we get the data is the product itself (product:Product)
     if product.price<=0 or not  product.name:
-        return "crediantials wrong price or name."
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price or name")
     else:
-        db.add(database_models.Product(**product.model_dump()))
+        db.add(database_models.Product(**product.model_dump())) 
         db.commit()
         return product
 
@@ -90,7 +92,7 @@ def update_product(id:int , product:Product,db:Session = Depends(get_db)):
         db.commit()
         return "Product updated"
     else:  
-        return "NO Product found"
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "Product Not Found")
 
 
 @app.delete("/products/{id}",status_code=status.HTTP_204_NO_CONTENT)
@@ -99,6 +101,6 @@ def delete_product(id:int,db:Session = Depends(get_db)):
     if db_product:
         db.delete(db_product)
         db.commit()
-        return "product deleted"
+        
     else:
-        return "NO Product found"
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Product Not Found")
