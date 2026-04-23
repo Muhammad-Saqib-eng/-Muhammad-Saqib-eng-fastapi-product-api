@@ -4,3 +4,11 @@ from sqlalchemy.orm import sessionmaker
 db_url="mysql+pymysql://root:root123@localhost:3306/dbFastApi"
 engine= create_engine(db_url)
 session=sessionmaker(autocommit=False,autoflush=False,bind=engine)
+
+
+def get_db():
+    db=session()
+    try:
+        yield db
+    finally:
+        db.close()
