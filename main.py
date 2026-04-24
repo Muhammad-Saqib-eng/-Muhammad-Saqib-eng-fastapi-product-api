@@ -3,7 +3,7 @@ from models import Product,ProductResponse
 from db import session, engine
 import database_models
 from fastapi.middleware.cors import CORSMiddleware
-from routers import product
+from routers import product,auth
 from db import get_db
 
 app=FastAPI()
@@ -39,3 +39,4 @@ def greet():
     return {"message": "hello there"}
 
 app.include_router(product.router,prefix="/products",tags=["product"])
+app.include_router(auth.router)
