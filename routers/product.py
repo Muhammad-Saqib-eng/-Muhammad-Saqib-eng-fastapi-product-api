@@ -4,7 +4,7 @@ from models import Product,ProductResponse
 import database_models
 from sqlalchemy.orm import Session
 from db import get_db
-
+from security import get_current_user
 
 router = APIRouter()
 
@@ -35,7 +35,7 @@ def return_product_by_id(id:int,db:Session = Depends(get_db)):
 
 
 @router.post("",status_code=status.HTTP_201_CREATED)
-def add_product(product:Product,db:Session = Depends(get_db)):  #the format we get the data is the product itself (product:Product)
+def add_product(product:Product,db:Session = Depends(get_db),current_user :str  = Depends(get_current_user)):  #the format we get the data is the product itself (product:Product)
     if product.price<=0 or not  product.name:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid price or name")
     else:
@@ -44,7 +44,7 @@ def add_product(product:Product,db:Session = Depends(get_db)):  #the format we g
         return product
 
 @router.put("/{id}",status_code=status.HTTP_200_OK)
-def update_product(id:int , product:Product,db:Session = Depends(get_db)):
+def update_product(id:int , product:Product,db:Session = Depends(get_db),current_user :str  = Depends(get_current_user)):
     db_product= db.query(database_models.Product).filter(database_models.Product.id==id).first()
     if db_product:
         db_product.name= product.name
@@ -57,8 +57,8 @@ def update_product(id:int , product:Product,db:Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail= "Product Not Found")
 
 
-@router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT)
-def delete_product(id:int,db:Session = Depends(get_db)):
+@router.delete("/{id}",status_code=status.HTTP_204_NO_CONTENT,)
+def delete_product(id:int,db:Session = Depends(get_db),current_user : str = Depends(get_current_user)):
     db_product= db.query(database_models.Product).filter(database_models.Product.id==id).first()
     if db_product:
         db.delete(db_product)

@@ -12,3 +12,9 @@ class Product(Base):
     price= Column(Float)    
     quantity= Column(Integer)
     
+class User(Base):
+    __tablename__= "User"
+
+    id=Column(Integer, primary_key= True, index=True)
+    username=Column(String(100),unique=True,nullable=False)
+    hashed_password=Column(String(255),nullable=False)

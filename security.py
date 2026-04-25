@@ -1,9 +1,11 @@
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 from passlib.context import CryptContext
 from jose import JWTError,jwt
+from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends,status,HTTPException
 
 
-SECRECT_KEY= "Secret_key"
+SECRET_KEY= "Secret_key"
 ALGORITHM= "HS256"
 ACCESS_TOKEN_EXPIRE_TIME=30
 
@@ -18,13 +20,24 @@ def verify_password(plain_password :str , hashed_pasword:str)->bool:
 
 def create_access_token(data:dict)->str:
     to_encode=data.copy()
-    expire_time= datetime.utcnow+ timedelta(minutes=ACCESS_TOKEN_EXPIRE_TIME)
-    to_encode.update({"exp :" :expire_time})
-    return jwt.encode(to_encode,SECRECT_KEY,algorithm= [ALGORITHM])
+    expire_time= datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_TIME)
+    to_encode.update({"exp " :int(expire_time.timestamp())})
+    return jwt.encode(to_encode,SECRET_KEY,algorithm= ALGORITHM)
 def verify_token(token:str)->str | None:
     try:
-        payload=jwt.decode(token,SECRECT_KEY,algorithms=[ALGORITHM] )
+        payload=jwt.decode(token,SECRET_KEY,algorithms=ALGORITHM )
         username : str = payload.get("sub")
         return username
     except JWTError:
         return None
+
+oauth2_scheme= OAuth2PasswordBearer(tokenUrl= "/auth/login")
+
+def get_current_user(token : str= Depends(oauth2_scheme))->str:
+    username =verify_token(token)
+    if username is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Invalid or expired token",
+                            headers={"WWW-Authenticate": "Bearer"}
+                            )
+    return username                         
