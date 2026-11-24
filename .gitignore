@@ -1,3 +1,12 @@
 venv/
 __pycache__/
 .env
+
+# Local practice & verification scripts
+verify_*.py
+phase1_visual_guide.html
+practice.py
+practice.db
+server.py
+*.db
+*.sqlite3
